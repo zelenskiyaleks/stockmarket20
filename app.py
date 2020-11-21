@@ -17,7 +17,7 @@ client.flood_sleep_threshold = 60
 
 quart_cfg = hypercorn.Config()
 port = int(os.environ.get("PORT", 17995))
-quart_cfg.bind = ["0.0.0.0:"+str(port)]
+quart_cfg.bind = ["0.0.0.0:17995"]
 # Quart app
 app = Quart(__name__)
 app = cors(app, allow_origin="*")
