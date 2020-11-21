@@ -16,7 +16,8 @@ client = TelegramClient('SESSION', int(os.environ['TELEGRAM_API_ID']), os.enviro
 client.flood_sleep_threshold = 60 
 
 quart_cfg = hypercorn.Config()
-quart_cfg.bind = ["0.0.0.0:8000"]
+port = int(os.environ.get("PORT", 17995))
+quart_cfg.bind = ["0.0.0.0:"+port]
 # Quart app
 app = Quart(__name__)
 app = cors(app, allow_origin="*")
