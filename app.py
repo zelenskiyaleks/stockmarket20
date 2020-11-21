@@ -42,6 +42,7 @@ async def news_route():
     logging.info(f"response: {response}")
     return jsonify(response)
 
+
 @app.route('/', methods=['GET'], endpoint='nmain')
 async def root_route():
     return "Hello"
