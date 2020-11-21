@@ -15,6 +15,8 @@ client = TelegramClient('SESSION', int(os.environ['TELEGRAM_API_ID']), os.enviro
 #client.parse_mode = 'html'  # <- Render things nicely
 client.flood_sleep_threshold = 60 
 
+quart_cfg = hypercorn.Config()
+quart_cfg.bind = ["0.0.0.0:8000"]
 # Quart app
 app = Quart(__name__)
 app = cors(app, allow_origin="*")
@@ -49,7 +51,7 @@ async def root_route():
 
 
 async def main():
-    await hypercorn.asyncio.serve(app, hypercorn.Config())
+    await hypercorn.asyncio.serve(app, quart_cfg)
 
 
 async def get_news_controller(content):
