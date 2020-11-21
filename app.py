@@ -1,18 +1,17 @@
 from __future__ import unicode_literals
 import hypercorn.asyncio
-import configparser 
 import logging
 import json
-import mysql.connector
 from quart import Quart, render_template_string, request, jsonify
 from telethon import TelegramClient, utils
 from  quart_cors import cors
 import psycopg2
+import os
 
-config = configparser.ConfigParser()  
-config.read("config.ini")
+
 # Telethon client
-client = TelegramClient('SESSION', int(config["Telegram"]['api_id']), config["Telegram"]['api_hash'])
+#client = TelegramClient('SESSION', int(config["Telegram"]['api_id']), config["Telegram"]['api_hash'])
+client = TelegramClient('SESSION', int(os.environ['TELEGRAM_API_ID']), os.environ['TELEGRAM_API_HASH'])
 #client.parse_mode = 'html'  # <- Render things nicely
 client.flood_sleep_threshold = 60 
 
@@ -175,10 +174,12 @@ quotes_query_template = "\
     "
 
 
-user = config['Postgres']['user']
-password = config['Postgres']['password']
-host = config['Postgres']['host']
-db = config['Postgres']['database']
+
+user = os.environ['POSTGRES_USER']
+password = os.environ['POSTGRES_PASSWORD']
+host = os.environ['POSTGRES_HOST']
+db = os.environ['POSTGRES_DATABASE']
+
 
 
 def get_quotes_model(ticker):
