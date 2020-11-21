@@ -1,0 +1,19 @@
+curl --request POST \
+  --url http://localhost:8000/quotes \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"request": "get_quotes",
+	"body": {
+		"ticker":"GAZP"
+	}
+}'
+
+
+curl --request POST \
+  --url http://localhost:8000/news \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "request": "get_news" ,
+	"body":{"channels":["bbbreaking","bitkogan", "ksdfjljf;qsjfa;slsfj", "economika", "olegderipaska"]
+	}
+}'
