@@ -4,7 +4,7 @@ click==7.1.2
 h11==0.11.0
 h2==4.0.0
 hpack==4.0.0
-Hypercorn==0.11.1
+Hypercorn==0.5.4
 hyperframe==6.0.0
 itsdangerous==1.1.0
 Jinja2==2.11.2
