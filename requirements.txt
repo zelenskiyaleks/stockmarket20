@@ -5,7 +5,7 @@ gunicorn==20.0.4
 h11==0.11.0
 h2==4.0.0
 hpack==4.0.0
-Hypercorn==0.11.1
+
 hyperframe==6.0.0
 itsdangerous==1.1.0
 Jinja2==2.11.2
@@ -21,8 +21,6 @@ psycopg2-binary==2.8.6
 pyaes==1.6.1
 pyasn1==0.4.8
 pytoml==0.1.21
-Quart==0.13.1
-Quart-CORS==0.3.0
 rsa==4.6
 six==1.15.0
 sortedcontainers==2.3.0
