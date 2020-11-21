@@ -7,6 +7,7 @@ import mysql.connector
 from quart import Quart, render_template_string, request, jsonify
 from telethon import TelegramClient, utils
 from  quart_cors import cors
+import psycopg2
 
 config = configparser.ConfigParser()  
 config.read("config.ini")
@@ -153,39 +154,41 @@ async def get_quotes_controller(content):
 quotes_query_template = "\
     select t1.DATE, LOW, HIGH, OPEN, CLOSE, VOLUME  from\
     (\
-    select DATE, MIN(TIME) as OPEN_TIME, MAX(TIME) as CLOSE_TIME from trading.quotes\
+    select DATE, MIN(TIME) as OPEN_TIME, MAX(TIME) as CLOSE_TIME from quotes\
     where TICKER ='%PLACEHOLDER%'\
     group by DATE) t1\
     inner join\
-    (select DATE, MIN(LOW) as LOW, MAX(HIGH) as HIGH, sum(VOL) as VOLUME from trading.quotes\
+    (select DATE, MIN(LOW) as LOW, MAX(HIGH) as HIGH, sum(VOL) as VOLUME from quotes\
     where TICKER ='%PLACEHOLDER%'\
     group by DATE) t2\
     on t1.DATE = t2.DATE\
     inner join\
-    (select DATE, TIME, OPEN from trading.quotes\
+    (select DATE, TIME, OPEN from quotes\
     where TICKER ='%PLACEHOLDER%'\
     ) t3\
     on t1.OPEN_TIME = t3.TIME and t1.DATE = t3.DATE\
     inner join\
-    (select DATE, TIME, CLOSE from trading.quotes\
+    (select DATE, TIME, CLOSE from quotes\
     where TICKER ='%PLACEHOLDER%'\
     ) t4\
     on t1.CLOSE_TIME = t4.TIME and t1.DATE = t4.DATE\
     "
 
 
-user = config['MYSQL']['user']
-password = config['MYSQL']['password']
-host = config['MYSQL']['host']
-db = config['MYSQL']['database']
+user = config['Postgres']['user']
+password = config['Postgres']['password']
+host = config['Postgres']['host']
+db = config['Postgres']['database']
 
 
 def get_quotes_model(ticker):
-    conn = mysql.connector.connect( 
+    conn = psycopg2.connect( 
         user=user, 
         password=password,
         host=host, 
-        database=db)
+        dbname=db)
+
+    cursor = conn.cursor()
 
     query = quotes_query_template.replace('%PLACEHOLDER%', ticker)
     my_list = []
@@ -195,7 +198,7 @@ def get_quotes_model(ticker):
     result = cursor.fetchall()
 
     for row in result:
-        my_list.append({"date": str(row[0]), "low": row[1], "high": row[2], "open": row[3], "close": row[4], "volume": row[5]})
+        my_list.append({"date": str(row[0]), "low": float(row[1]), "high": float(row[2]), "open": float(row[3]), "close": float(row[4]), "volume": float(row[5])})
 
     return my_list   
 
