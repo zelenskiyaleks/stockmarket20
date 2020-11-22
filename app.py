@@ -7,6 +7,7 @@ from telethon import TelegramClient, utils
 from  quart_cors import cors
 import psycopg2
 import os
+import asyncio
 
 
 # Telethon client
@@ -14,7 +15,6 @@ import os
 client = TelegramClient('SESSION', int(os.environ['TELEGRAM_API_ID']), os.environ['TELEGRAM_API_HASH'])
 #client.parse_mode = 'html'  # <- Render things nicely
 client.flood_sleep_threshold = 60 
-
 quart_cfg = hypercorn.Config()
 port = int(os.environ.get("PORT", 17995))
 quart_cfg.bind = ["0.0.0.0:17995"]
@@ -51,8 +51,7 @@ async def root_route():
     return "Hello"
 
 
-async def main():
-    await hypercorn.asyncio.serve(app, quart_cfg)
+
 
 
 async def get_news_controller(content):
@@ -110,11 +109,6 @@ async def  get_channel(channel):
         except:
             pass
     return result
-
-
-def processMessage(msg):
-    d = msg.to_dict()
-    return d
 
 
 @app.route('/quotes', methods=['POST'], endpoint='quotes')
@@ -205,6 +199,10 @@ def get_quotes_model(ticker):
         my_list.append({"date": str(row[0]), "low": float(row[1]), "high": float(row[2]), "open": float(row[3]), "close": float(row[4]), "volume": float(row[5])})
 
     return my_list   
+
+
+async def main():
+    await hypercorn.asyncio.serve(app, quart_cfg)
 
 
 if __name__ == '__main__':
