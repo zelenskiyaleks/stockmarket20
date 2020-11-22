@@ -1,1 +1,1 @@
-web: hypercorn --bind '0.0.0.0:17995' app:app 
+web: hypercorn app:app 
