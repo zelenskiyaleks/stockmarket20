@@ -1,1 +1,1 @@
-web: python app.py 
+web: hypercorn app:app 
