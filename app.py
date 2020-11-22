@@ -200,10 +200,12 @@ def get_quotes_model(ticker):
     return my_list   
 
 
-async def main():
-    await hypercorn.asyncio.serve(app, quart_cfg)
+#async def main():
+#    await hypercorn.asyncio.serve(app, quart_cfg)
 
 
-if __name__ == '__main__':
-    client.loop.set_debug(True)
-    client.loop.run_until_complete(main())
+#if __name__ == '__main__':
+#    client.loop.set_debug(True)
+#    client.loop.run_until_complete(main())
+
+app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 17995)), loop=client.loop) 
