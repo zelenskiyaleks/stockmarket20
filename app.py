@@ -78,7 +78,7 @@ async def get_news_controller(content):
 async def get_news_model(channels, keywords):
 #    await client.start()
 #    print("GET NEWS MODEL") 
-    data = {}
+#    data = {}
     errors = []
 
     #for channel in channels:
