@@ -10,10 +10,9 @@ import os
 
 
 # Telethon client
-#client = TelegramClient('SESSION', int(config["Telegram"]['api_id']), config["Telegram"]['api_hash'])
-client = TelegramClient('SESSION', int(os.environ['TELEGRAM_API_ID']), os.environ['TELEGRAM_API_HASH'])
+#client = TelegramClient('SESSION', int(os.environ['TELEGRAM_API_ID']), os.environ['TELEGRAM_API_HASH'])
 #client.parse_mode = 'html'  # <- Render things nicely
-client.flood_sleep_threshold = 60 
+#client.flood_sleep_threshold = 60 
 quart_cfg = hypercorn.Config()
 port = int(os.environ.get("PORT", 17995))
 quart_cfg.bind = ["0.0.0.0:" + str(port)]
@@ -24,15 +23,15 @@ app.secret_key = 'CHANGE THIS TO SOMETHING SECRET'
 
 
 # Connect the client before we start serving with Quart
-@app.before_serving
-async def startup():
-    await client.connect()
+#@app.before_serving
+#async def startup():
+#    await client.connect()
 
 
 # After we're done serving (near shutdown), clean up the client
-@app.after_serving
-async def cleanup():
-    await client.disconnect()
+#@app.after_serving
+#async def cleanup():
+#    await client.disconnect()
 
 
 @app.route('/news', methods=['POST'], endpoint='news')
@@ -50,14 +49,12 @@ async def root_route():
     return "Hello"
 
 
-
-
-
 async def get_news_controller(content):
     command = content['request']
     if command == 'get_news':
         channels = content['body']['channels']
-        data, errors = await get_news_model(channels)
+        keywords = content['body']['keywords']
+        data, errors = await get_news_model(channels, keywords)
         
         if len(data) == 0:
             response = {
@@ -78,36 +75,64 @@ async def get_news_controller(content):
     return response 
 
 
-async def get_news_model(channels):
-    await client.start()
-    print("GET NEWS MODEL") 
+async def get_news_model(channels, keywords):
+#    await client.start()
+#    print("GET NEWS MODEL") 
     data = {}
     errors = []
 
-    for channel in channels:
-        print(channel)
-        try: 
-            msg = await get_channel(channel)
-            data[channel] = msg
-        except Exception as e:
-            print(e)
-            errors.append(f"\nchannel {channel} import error.")
-    await client.disconnect()
-    return data, errors
+    #for channel in channels:
+    #try: 
+    msg = await get_channel(channels, keywords)
+    #        data[channel] = msg
+    #except Exception as e:
+    #        print(e)
+    #        errors.append(f"\nchannel {channel} import error.")
+#    await client.disconnect()
+    #print(msg)
+    return msg, errors
 
 
-async def  get_channel(channel):
-    channel_id =await client.get_entity("https://t.me/" + channel)
-    msgs = await client.get_messages(channel_id, limit = 1)
+async def  get_channel(channels, keywords):
+    channel_querry = list(map(lambda x: "'" + str(x) + "'", channels))
+    where_clause_channel = "channel in (" + ','.join(channel_querry) + ") and "
 
-    result = []
-    for msg in msgs:
-        try:
-            jsonify(msg.to_dict())
-            result.append(msg.to_dict())
-        except:
-            pass
-    return result
+    keywords_clause = list(map(lambda x: "or lower(message) like '%" + str(x) + "%'", keywords))
+    where_clause_keywords = '(False ' + ' '.join(keywords_clause) + ')'
+
+    query = 'select * from telegram where ' + where_clause_channel + where_clause_keywords + ' order by timestamp desc'
+
+    print(query)
+    conn = psycopg2.connect( 
+        user=user, 
+        password=password,
+        host=host, 
+        dbname=db)
+
+    cursor = conn.cursor()
+    my_list = []
+
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    for row in result:
+        my_list.append({"channel": str(row[0]), "id": int(row[1]), "message": str(row[2]), "timestamp": str(row[3])})
+
+    return my_list
+
+
+#    channel_id =await client.get_entity("https://t.me/" + channel)
+#    msgs = await client.get_messages(channel_id, limit = 1)
+
+#    result = []
+#    for msg in msgs:
+#        try:
+#            jsonify(msg.to_dict())
+#            result.append(msg.to_dict())
+#        except:
+#            pass
+#    return result
 
 
 @app.route('/quotes', methods=['POST'], endpoint='quotes')
@@ -200,12 +225,4 @@ def get_quotes_model(ticker):
     return my_list   
 
 
-#async def main():
-#    await hypercorn.asyncio.serve(app, quart_cfg)
-
-
-#if __name__ == '__main__':
-#    client.loop.set_debug(True)
-#    client.loop.run_until_complete(main())
-
-app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 17995)), loop=client.loop) 
+app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 17995)))#, loop=client.loop) 
