@@ -16,6 +16,11 @@ quart_cfg.bind = ["0.0.0.0:" + str(port)]
 app = Quart(__name__)
 app = cors(app, allow_origin="*")
 app.secret_key = 'CHANGE THIS TO SOMETHING SECRET'
+# db connection
+user = os.environ['POSTGRES_USER']
+password = os.environ['POSTGRES_PASSWORD']
+host = os.environ['POSTGRES_HOST']
+db = os.environ['POSTGRES_DATABASE']
 
 
 @app.route('/news', methods=['POST'], endpoint='news')
@@ -75,7 +80,6 @@ async def  get_channel(channels, keywords):
 
     query = 'select * from telegram where ' + where_clause_channel + where_clause_keywords + ' order by timestamp desc LIMIT 30'
 
-    #print(query)
     conn = psycopg2.connect( 
         user=user, 
         password=password,
@@ -99,9 +103,7 @@ async def  get_channel(channels, keywords):
 async def quotes_route():
     logging.info(request.is_json)
     content = await request.get_json()
-    #print(content)
     response = await get_quotes_controller(content)
-    #print(response)
     logging.info(f"response: {response}")
     return jsonify(response)
 
@@ -154,13 +156,6 @@ quotes_query_template = "\
     on t1.CLOSE_TIME = t4.TIME and t1.DATE = t4.DATE\
     "
 
-
-user = os.environ['POSTGRES_USER']
-password = os.environ['POSTGRES_PASSWORD']
-host = os.environ['POSTGRES_HOST']
-db = os.environ['POSTGRES_DATABASE']
-
-
 def get_quotes_model(ticker):
     conn = psycopg2.connect( 
         user=user, 
@@ -178,7 +173,76 @@ def get_quotes_model(ticker):
     result = cursor.fetchall()
 
     for row in result:
-        my_list.append({"date": str(row[0]), "low": float(row[1]), "high": float(row[2]), "open": float(row[3]), "close": float(row[4]), "volume": float(row[5])})
+        my_list.append({
+            "date": str(row[0]), 
+            "low": float(row[1]), 
+            "high": float(row[2]), 
+            "open": float(row[3]), 
+            "close": float(row[4]), 
+            "volume": float(row[5])})
+
+    return my_list   
+
+
+@app.route('/forecasts', methods=['POST'], endpoint='forecasts')
+async def forecasts_route():
+    logging.info(request.is_json)
+    content = await request.get_json()
+    response = await get_forecasts_controller(content)
+    logging.info(f"response: {response}")
+    return jsonify(response)
+
+
+async def get_forecasts_controller(content):
+    command = content['request']
+
+    if command == 'get_forecasts':
+        ticker = content['body']['ticker']
+        data = get_forecasts_model(ticker)
+        
+        if len(data) == 0:
+            response = {
+                "state": "error",
+                "message": "data not found",
+            }
+        else:        
+            response = {
+            "state": "OK",
+            "response": data 
+        }
+    else:
+        response = {
+            "state": "error",
+            "message": "unknown command",
+        }
+    return response 
+
+
+forecasts_query_template = "select ticker, forecastdate, forecasteddate, forecastedprice, comment from forecasts where ticker = '%PLACEHOLDER%'"
+
+def get_forecasts_model(ticker):
+    conn = psycopg2.connect( 
+        user=user, 
+        password=password,
+        host=host, 
+        dbname=db)
+
+    cursor = conn.cursor()
+
+    query = forecasts_query_template.replace('%PLACEHOLDER%', ticker)
+    my_list = []
+
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    for row in result:
+        my_list.append({
+            "ticker": str(row[0]), 
+            "forecastdate": str(row[1]), 
+            "forecasteddate": str(row[2]), 
+            "forecastedprice": float(row[3]), 
+            "comment": str(row[4])})
 
     return my_list   
 
