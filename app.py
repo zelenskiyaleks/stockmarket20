@@ -153,7 +153,7 @@ quotes_query_template = "\
     (select timestamp::date as DATE, timestamp::time as TIME, CLOSE from allquotes\
     where TICKER ='%PLACEHOLDER%'\
     ) t4\
-    on t1.CLOSE_TIME = t4.TIME and t1.DATE = t4.DATE\
+    on t1.CLOSE_TIME = t4.TIME and t1.DATE = t4.DATE order by t1.DATE asc\
     "
 
 def get_quotes_model(ticker):
