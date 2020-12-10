@@ -218,7 +218,36 @@ async def get_forecasts_controller(content):
     return response 
 
 
-forecasts_query_template = "select ticker, forecastdate, forecasteddate, forecastedprice, comment from forecasts where ticker = '%PLACEHOLDER%'"
+forecasts_query_template = "select predictor, t1.DATE, t4.CLOSE, prediction_on, prediction, t41.close as actual_price,\
+           case when prediction > t4.close then log((t41.close)/t4.close) else -log((t41.close)/t4.close) end as PnL\
+    from\
+    (\
+    select timestamp::date as DATE, MIN(timestamp::time) as OPEN_TIME, MAX(timestamp::time) as CLOSE_TIME from allquotes\
+    where TICKER ='%PLACEHOLDER%'\
+    group by DATE) t1\
+    inner join\
+    (select timestamp::date as DATE, timestamp::time as TIME, CLOSE from allquotes\
+    where TICKER ='%PLACEHOLDER%'\
+    ) t4\
+    on t1.CLOSE_TIME = t4.TIME and t1.DATE = t4.DATE\
+    inner join\
+    (select predictor, current_price, prediction_date, prediction_on, prediction from predictions\
+    where ASSET ='%PLACEHOLDER%'\
+    ) t2\
+    on t1.DATE = t2.prediction_date\
+    inner join\
+    (select timestamp::date as DATE, timestamp::time as TIME, CLOSE from allquotes\
+    where TICKER ='%PLACEHOLDER%'\
+    ) t41\
+    on t41.DATE = t2.prediction_on\
+    inner join\
+    (\
+    select timestamp::date as DATE, MIN(timestamp::time) as OPEN_TIME, MAX(timestamp::time) as CLOSE_TIME from allquotes\
+    where TICKER ='%PLACEHOLDER%'\
+    group by DATE) t11\
+    on t11.CLOSE_TIME = t41.TIME and t11.DATE = t41.DATE\
+    order by t1.DATE desc"
+
 
 def get_forecasts_model(ticker):
     conn = psycopg2.connect( 
@@ -238,11 +267,14 @@ def get_forecasts_model(ticker):
 
     for row in result:
         my_list.append({
-            "ticker": str(row[0]), 
-            "forecastdate": str(row[1]), 
-            "forecasteddate": str(row[2]), 
-            "forecastedprice": float(row[3]), 
-            "comment": str(row[4])})
+            "predictor": str(row[0]), 
+            "forecast_date": str(row[1]), 
+            "close": float(row[2]), 
+            "predicted_on": str(row[3]), 
+            "prediction": float(row[4]),
+            "actual_price": float(row[5]),
+            "pnl": float(row[6]),
+            })
 
     return my_list   
 
