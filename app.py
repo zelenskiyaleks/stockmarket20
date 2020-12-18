@@ -72,6 +72,37 @@ async def get_news_model(channels, keywords):
     return msg, errors
 
 
+async def check_sentence(sentence, keywords):
+    sentence = re.sub(r'[^а-яa-z]+',' ', sentence.lower()).split()
+    
+    for name in keywords:
+        name = name.lower()
+        word = morph.parse(name)[0]
+        
+        inflect_list = [
+           word.inflect({'nomn'}),
+           word.inflect({'gent'}),
+           word.inflect({'datv'}),
+           word.inflect({'accs'}),
+           word.inflect({'ablt'}),
+           word.inflect({'loct'}),
+           word.inflect({'nomn', 'plur'}),
+           word.inflect({'gent', 'plur'}),
+           word.inflect({'datv', 'plur'}),
+           word.inflect({'accs', 'plur'}),
+           word.inflect({'ablt', 'plur'}),
+           word.inflect({'loct', 'plur'})
+            ] 
+        
+        inflect_list = [x.word for x in inflect_list if x is not None]
+        
+        for item in inflect_list:
+            if item in sentence:
+                return True
+        
+    return False
+
+
 async def  get_channel(channels, keywords):
     print("get_channels", channels, keywords)
     channel_querry = list(map(lambda x: "'" + str(x) + "'", channels))
@@ -96,7 +127,8 @@ async def  get_channel(channels, keywords):
     result = cursor.fetchall()
 
     for row in result:
-        my_list.append({"channel": str(row[0]), "id": int(row[1]), "message": str(row[2]), "timestamp": str(row[3])})
+        if check_sentence(str(row[2]), keywords)
+            my_list.append({"channel": str(row[0]), "id": int(row[1]), "message": str(row[2]), "timestamp": str(row[3])})
 
     return my_list
 

@@ -21,3 +21,5 @@ Telethon==1.17.5
 toml==0.10.2
 Werkzeug==1.0.1
 wsproto==0.15.0
+pymorphy2 >=0.8,<0.9
+pymorphy2-dicts 
