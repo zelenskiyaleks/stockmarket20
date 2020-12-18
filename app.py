@@ -75,6 +75,7 @@ async def get_news_model(channels, keywords):
 async def check_sentence(sentence, keywords):
     sentence = re.sub(r'[^а-яa-z]+',' ', sentence.lower()).split()
     print("check_sentence", sentence, keywords)
+    morph = pymorphy2.MorphAnalyzer()
     for name in keywords:
         name = name.lower()
         word = morph.parse(name)[0]
