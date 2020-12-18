@@ -7,6 +7,8 @@ from telethon import TelegramClient, utils
 from  quart_cors import cors
 import psycopg2
 import os
+import re
+import pymorphy2
 
 
 quart_cfg = hypercorn.Config()
