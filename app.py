@@ -73,7 +73,8 @@ async def get_news_model(channels, keywords):
 
 
 async def check_sentence(sentence, keywords):
-    sentence = re.sub(r'[^а-яa-z]+',' ', sentence.lower()).split()
+    sentence = sentence.lower()
+    sentence_split = re.sub(r'[^а-яa-z]+',' ', sentence).split()
     for name in keywords:
         name = name.lower()
         english_check = re.compile(r'[a-z]')
@@ -101,7 +102,7 @@ async def check_sentence(sentence, keywords):
             inflect_list = [x.word for x in inflect_list if x is not None]
 
             for item in inflect_list:
-                if item in sentence:
+                if item in sentence_split:
                     return True
         
     return False
