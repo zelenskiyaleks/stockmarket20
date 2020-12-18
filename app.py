@@ -74,7 +74,7 @@ async def get_news_model(channels, keywords):
 
 async def check_sentence(sentence, keywords):
     sentence = re.sub(r'[^а-яa-z]+',' ', sentence.lower()).split()
-    
+    print("check_sentence", sentence, keywords)
     for name in keywords:
         name = name.lower()
         word = morph.parse(name)[0]
@@ -95,11 +95,11 @@ async def check_sentence(sentence, keywords):
             ] 
         
         inflect_list = [x.word for x in inflect_list if x is not None]
-        
+        print("inflect_list",inflect_list)
         for item in inflect_list:
             if item in sentence:
                 return True
-        
+    print("False")
     return False
 
 
