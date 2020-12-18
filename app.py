@@ -74,33 +74,36 @@ async def get_news_model(channels, keywords):
 
 async def check_sentence(sentence, keywords):
     sentence = re.sub(r'[^а-яa-z]+',' ', sentence.lower()).split()
-    print("check_sentence", sentence, keywords)
-    morph = pymorphy2.MorphAnalyzer()
     for name in keywords:
         name = name.lower()
-        word = morph.parse(name)[0]
+        english_check = re.compile(r'[a-z]')
+        if english_check.match(name) and sentence.find(name) > 0:
+            return True
+        else:
+            morph = pymorphy2.MorphAnalyzer()
+            word = morph.parse(name)[0]
+
+            inflect_list = [
+               word.inflect({'nomn'}),
+               word.inflect({'gent'}),
+               word.inflect({'datv'}),
+               word.inflect({'accs'}),
+               word.inflect({'ablt'}),
+               word.inflect({'loct'}),
+               word.inflect({'nomn', 'plur'}),
+               word.inflect({'gent', 'plur'}),
+               word.inflect({'datv', 'plur'}),
+               word.inflect({'accs', 'plur'}),
+               word.inflect({'ablt', 'plur'}),
+               word.inflect({'loct', 'plur'})
+                ] 
+
+            inflect_list = [x.word for x in inflect_list if x is not None]
+
+            for item in inflect_list:
+                if item in sentence:
+                    return True
         
-        inflect_list = [
-           word.inflect({'nomn'}),
-           word.inflect({'gent'}),
-           word.inflect({'datv'}),
-           word.inflect({'accs'}),
-           word.inflect({'ablt'}),
-           word.inflect({'loct'}),
-           word.inflect({'nomn', 'plur'}),
-           word.inflect({'gent', 'plur'}),
-           word.inflect({'datv', 'plur'}),
-           word.inflect({'accs', 'plur'}),
-           word.inflect({'ablt', 'plur'}),
-           word.inflect({'loct', 'plur'})
-            ] 
-        
-        inflect_list = [x.word for x in inflect_list if x is not None]
-        print("inflect_list",inflect_list)
-        for item in inflect_list:
-            if item in sentence:
-                return True
-    print("False")
     return False
 
 
