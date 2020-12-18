@@ -127,7 +127,7 @@ async def  get_channel(channels, keywords):
     result = cursor.fetchall()
 
     for row in result:
-        if check_sentence(str(row[2]), keywords)
+        if check_sentence(str(row[2]), keywords):
             my_list.append({"channel": str(row[0]), "id": int(row[1]), "message": str(row[2]), "timestamp": str(row[3])})
 
     return my_list
