@@ -24,6 +24,7 @@ password = os.environ['POSTGRES_PASSWORD']
 host = os.environ['POSTGRES_HOST']
 db = os.environ['POSTGRES_DATABASE']
 
+morph = pymorphy2.MorphAnalyzer()
 
 @app.route('/news', methods=['POST'], endpoint='news')
 async def news_route():
@@ -73,6 +74,7 @@ async def get_news_model(channels, keywords):
 
 
 async def check_sentence(sentence, keywords):
+    global morph
     sentence = sentence.lower()
     sentence_split = re.sub(r'[^а-яa-z]+',' ', sentence).split()
     for name in keywords:
@@ -81,7 +83,7 @@ async def check_sentence(sentence, keywords):
         if english_check.match(name) and sentence.find(name) > 0:
             return True
         else:
-            morph = pymorphy2.MorphAnalyzer()
+
             word = morph.parse(name)[0]
 
             inflect_list = [
